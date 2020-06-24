@@ -117,7 +117,7 @@ router.put('/community/updatepost', function(req, res, next) {
 });
 
 router.delete('/community/deletepost', function(req, res, next) {
-  let token= req.headers.token;
+  var token= req.headers.token;
 
   if( req.user) {
     var token = req.user[0];
@@ -156,7 +156,7 @@ router.delete('/community/deletepost', function(req, res, next) {
 
 
 router.post('/community/createreply', function(req, res, next) {
-  let token= req.headers.token;
+  var token= req.headers.token;
 
   if( req.user) {
     var token = req.user[0];

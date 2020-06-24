@@ -95,15 +95,48 @@ let upload = multer({
   })
 });
 
+router.get('/upload', function(req, res) {
+  res.render('upload');
+});
+
 router.post('/uploadprofile', upload.single("imgFile"), function(req, res, next) {
+  var token = req.headers.token;
+  var id = req.signedCookies.userid;
+
+  if( req.user) {
+    var token = req.user[0];
+    var id = req.user[1];
+  }
+
+  if(verify(token, secretObj.secret)){
   let imgFile = req.file;
     if(imgFile.size<5000000){
-        res.json(imgFile);
+          models.user.update({
+          profilejpg : imgFile.key
+        },
+        {
+            where : { id : id }
+        })
+          .then(result =>{
+            res.json({
+              resultCode : resCode.Success,
+              message : resCode.SuccessMessage
+            });
+          })
+          .catch(err => {
+            console.log(err);
+            res.json({
+              resultCode : resCode.Failed,
+              message : resCode.FailedMessage
+            })
+          })
+      }
+      else {
+          console.log("사이즈가 너무 큽니다.");
+      }
     }
-    else {
-        console.log("사이즈가 너무 큽니다.");
-    }
-})
+  }
+)
 
 router.get('/login',function(req,res,next) {
   res.render('login');
@@ -129,7 +162,7 @@ router.post('/signup', function(req, res, next) {
     .then( result => {
       console.log("회원가입 성공");
       res.json({ resultCode : resCode.Success,
-                 message: resCode.SuccessMessage 
+                 message: resCode.SuccessMessage, 
     })
     })
     .catch( err => {
@@ -285,7 +318,7 @@ passport.use(new FacebookStrategy({
     })
   );
 
-  router.get('/mypost', function(req, res, next) {
+  router.get('/mypostcommunity', function(req, res, next) {
     
     var token = req.headers.token;
     var id = req.signedCookies.userid;
@@ -318,6 +351,41 @@ passport.use(new FacebookStrategy({
         res.json({ resultCode : resCode.VerifyFailedCode,
                    message: resCode.VerifyFailError });
     }
+})
+
+router.get('/mypostcontest', function(req, res, next) {
+    
+  var token = req.headers.token;
+  var id = req.signedCookies.userid;
+
+  if( req.user) {
+    var token = req.user[0];
+    var id = req.user[1];
+  }
+
+  if(verify(token, secretObj.secret)) {
+      models.contest.findAll({
+          where : {
+              writer : id
+          }
+      })
+      .then( findpost => {
+          res.json({ resultCode : resCode.Success,
+                     message: resCode.SuccessMessage,
+                     success : findpost
+                  });
+      })
+      .catch( err => {
+          console.log(err);
+          res.json({ resultCode : resCode.Failed,
+                     message: resCode.ReadError });
+      })
+  }
+  else {
+      console.log("토큰이 없거나 만료되었습니다.");
+      res.json({ resultCode : resCode.VerifyFailedCode,
+                 message: resCode.VerifyFailError });
+  }
 })
 
 router.post('/logout', function(req, res, next) {
