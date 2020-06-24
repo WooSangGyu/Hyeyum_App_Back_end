@@ -34,4 +34,17 @@ Object.keys(db).forEach(modelName => {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
+db.community = require('./community')(sequelize, Sequelize);
+db.reply = require('./reply')(sequelize, Sequelize);
+db.user = require('./user')(sequelize, Sequelize);
+
+db.user.hasMany(db.community, {foreignKey: 'writer', sourceKey: 'id', onDelete:'cascade', onUpdate: 'cascade'});
+db.community.belongsTo(db.user, {foreignKey: 'writer', targetKey: 'id'});
+
+db.user.hasMany(db.reply, {foreignKey: 'writer', sourceKey: 'id', onDelete:'cascade', onUpdate: 'cascade'});
+db.reply.belongsTo(db.user, {foreignKey: 'writer', targetKey: 'id'});
+
+db.community.hasMany(db.reply, {foreignKey: 'postno', sourceKey: 'no', onDelete:'cascade', onUpdate: 'cascade'});
+db.reply.belongsTo(db.community, {foreignKey: 'postno', targetKey: 'no'});
+
 module.exports = db;
