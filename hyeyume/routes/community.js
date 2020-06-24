@@ -30,7 +30,7 @@ router.get('/community', function(req, res, next) {
   })
 });
 
-router.post('/createpost', function(req, res, next) {
+router.post('/community/createpost', function(req, res, next) {
 
   let token= req.headers.token;
 
@@ -69,7 +69,7 @@ router.post('/createpost', function(req, res, next) {
   }
 });
 
-router.put('/updatepost', function(req, res, next) {
+router.put('/community/updatepost', function(req, res, next) {
   let token= req.headers.token;
 
   if(verify(token, secretObj.secret)){
@@ -106,7 +106,7 @@ router.put('/updatepost', function(req, res, next) {
   }
 });
 
-router.delete('/deletepost', function(req, res, next) {
+router.delete('/community/deletepost', function(req, res, next) {
   let token= req.headers.token;
 
   if(verify(token, secretObj.secret)){
@@ -140,7 +140,7 @@ router.delete('/deletepost', function(req, res, next) {
 });
 
 
-router.post('/createreply', function(req, res, next) {
+router.post('/community/createreply', function(req, res, next) {
   let token= req.headers.token;
 
   if(verify(token, secretObj.secret)){
@@ -148,7 +148,7 @@ router.post('/createreply', function(req, res, next) {
     let loginuser = req.signedCookies.userid;
     let body = req. body;
 
-    models.reply.create({
+    models.communityreply.create({
       writer : loginuser,
       reply : body.reply,
       createTime : new Date()
@@ -177,7 +177,7 @@ router.post('/createreply', function(req, res, next) {
   }
 });
 
-router.put('/updatereply', function(req, res, next) {
+router.put('/community/updatereply', function(req, res, next) {
   let token= req.headers.token;
 
   if(verify(token, secretObj.secret)){
@@ -185,7 +185,7 @@ router.put('/updatereply', function(req, res, next) {
     let loginuser = req.signedCookies.userid;
     let body = req.body;
 
-    models.reply.update({
+    models.communityreply.update({
       reply: body.reply,
       createTime: new Date()
     }, {
@@ -214,14 +214,14 @@ router.put('/updatereply', function(req, res, next) {
   }
 });
 
-router.delete('/deletereply', function(req, res, next) {
+router.delete('/community/deletereply', function(req, res, next) {
   let token= req.headers.token;
 
   if(verify(token, secretObj.secret)){
 
     let loginuser = req.signedCookies.userid;
 
-    models.reply.destroy({
+    models.communityreply.destroy({
       where: {id : loginuser , replyno : body.replyno }
     })
     .then( result => {

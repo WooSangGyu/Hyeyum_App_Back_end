@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = (sequelize, DataType) => {
-    var reply = sequelize.define('reply', {
+    var communityreply = sequelize.define('communityreply', {
         replyno : {
             type : DataType.INTEGER,
             primaryKey:true,
@@ -28,5 +28,5 @@ module.exports = (sequelize, DataType) => {
         timestamps: false
     });
     
-    return reply;
+    return communityreply;
 };

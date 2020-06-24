@@ -5,8 +5,9 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const models = require('./models/index');
 
-var post = require('./routes/post');
+var community = require('./routes/community');
 var user = require('./routes/user');
+var contest = require('./routes/contest');
 
 var app = express();
 
@@ -26,8 +27,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/api', post);
+app.use('/api', community);
 app.use('/api', user);
+app.use('/api', contest);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
