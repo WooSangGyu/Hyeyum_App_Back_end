@@ -32,7 +32,12 @@ router.get('/community', function(req, res, next) {
 
 router.post('/community/createpost', function(req, res, next) {
 
-  let token= req.headers.token;
+  var token= req.headers.token;
+
+  if( req.user) {
+    var token = req.user[0];
+    var loginuser = req.user[1];
+  }
 
   if(verify(token, secretObj.secret)){
 
@@ -70,8 +75,13 @@ router.post('/community/createpost', function(req, res, next) {
 });
 
 router.put('/community/updatepost', function(req, res, next) {
-  let token= req.headers.token;
+  var token= req.headers.token;
 
+  if( req.user) {
+    var token = req.user[0];
+    var loginuser = req.user[1];
+  }
+  
   if(verify(token, secretObj.secret)){
 
     let loginuser = req.signedCookies.userid;
@@ -109,6 +119,11 @@ router.put('/community/updatepost', function(req, res, next) {
 router.delete('/community/deletepost', function(req, res, next) {
   let token= req.headers.token;
 
+  if( req.user) {
+    var token = req.user[0];
+    var loginuser = req.user[1];
+  }
+  
   if(verify(token, secretObj.secret)){
 
     let loginuser = req.signedCookies.userid;
@@ -143,6 +158,11 @@ router.delete('/community/deletepost', function(req, res, next) {
 router.post('/community/createreply', function(req, res, next) {
   let token= req.headers.token;
 
+  if( req.user) {
+    var token = req.user[0];
+    var loginuser = req.user[1];
+  }
+  
   if(verify(token, secretObj.secret)){
 
     let loginuser = req.signedCookies.userid;
@@ -178,8 +198,13 @@ router.post('/community/createreply', function(req, res, next) {
 });
 
 router.put('/community/updatereply', function(req, res, next) {
-  let token= req.headers.token;
+  var token= req.headers.token;
 
+  if( req.user) {
+    var token = req.user[0];
+    var loginuser = req.user[1];
+  }
+  
   if(verify(token, secretObj.secret)){
 
     let loginuser = req.signedCookies.userid;
@@ -215,8 +240,13 @@ router.put('/community/updatereply', function(req, res, next) {
 });
 
 router.delete('/community/deletereply', function(req, res, next) {
-  let token= req.headers.token;
+  var token= req.headers.token;
 
+  if( req.user) {
+    var token = req.user[0];
+    var loginuser = req.user[1];
+  }
+  
   if(verify(token, secretObj.secret)){
 
     let loginuser = req.signedCookies.userid;

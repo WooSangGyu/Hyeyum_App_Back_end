@@ -32,8 +32,12 @@ router.get('/contest', function(req, res, next) {
 
 router.post('/contest/createpost', function(req, res, next) {
 
-  let token= req.headers.token;
+  var token= req.headers.token;
 
+  if( req.user) {
+    var token = req.user[0];
+    var loginuser = req.user[1];
+  }
   if(verify(token, secretObj.secret)){
 
     let loginuser = req.signedCookies.userid;
@@ -70,8 +74,12 @@ router.post('/contest/createpost', function(req, res, next) {
 });
 
 router.put('/contest/updatepost', function(req, res, next) {
-  let token= req.headers.token;
+  var token= req.headers.token;
 
+  if( req.user) {
+    var token = req.user[0];
+    var loginuser = req.user[1];
+  }
   if(verify(token, secretObj.secret)){
 
     let loginuser = req.signedCookies.userid;
@@ -107,7 +115,12 @@ router.put('/contest/updatepost', function(req, res, next) {
 });
 
 router.delete('/contest/deletepost', function(req, res, next) {
-  let token= req.headers.token;
+  var token= req.headers.token;
+
+  if( req.user) {
+    var token = req.user[0];
+    var loginuser = req.user[1];
+  }
 
   if(verify(token, secretObj.secret)){
 
@@ -141,7 +154,12 @@ router.delete('/contest/deletepost', function(req, res, next) {
 
 
 router.post('/contest/createreply', function(req, res, next) {
-  let token= req.headers.token;
+  var token= req.headers.token;
+
+  if( req.user) {
+    var token = req.user[0];
+    var loginuser = req.user[1];
+  }
 
   if(verify(token, secretObj.secret)){
 
@@ -178,11 +196,16 @@ router.post('/contest/createreply', function(req, res, next) {
 });
 
 router.put('/contest/updatereply', function(req, res, next) {
-  let token= req.headers.token;
+  var token = req.headers.token;
+
+  if( req.user) {
+    var token = req.user[0];
+    var loginuser = req.user[1];
+  }
 
   if(verify(token, secretObj.secret)){
 
-    let loginuser = req.signedCookies.userid;
+    var loginuser = req.signedCookies.userid;
     let body = req.body;
 
     models.contestreply.update({
@@ -215,8 +238,13 @@ router.put('/contest/updatereply', function(req, res, next) {
 });
 
 router.delete('/contest/deletereply', function(req, res, next) {
-  let token= req.headers.token;
+  var token= req.headers.token;
 
+  if( req.user) {
+    var token = req.user[0];
+    var loginuser = req.user[1];
+  }
+  
   if(verify(token, secretObj.secret)){
 
     let loginuser = req.signedCookies.userid;

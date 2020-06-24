@@ -18,7 +18,7 @@ module.exports = (sequelize, DataType) => {
         },
         studentCode : {
             type : DataType.INTEGER,
-            allowNull:false
+            allowNull:true
         },
         Th : {
             type : DataType.INTEGER,

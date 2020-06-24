@@ -2,7 +2,8 @@ var express = require('express');
 var router = express.Router();
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
-var md5 = require('md5');
+// var md5 = require('md5');
+var sha256 = require('sha256');
 var jwt = require('jsonwebtoken');
 var resCode = require('../resCode/codes');
 var passport = require('passport');
@@ -30,21 +31,25 @@ router.use(passport.initialize());
 router.use(passport.session());
 
 
-passport.serializeUser(function(user, done) {
-    user = verify(token, secretObj.secret);
-    done(null, user);
+passport.serializeUser(function(userpro, done) {
+    if(verify(userpro[0], secretObj.secret)) {
+      done(null, userpro);
+    }
+    else{
+      console.log("사용자 정보를 받아오지 못했습니다.");
+    }
   });
   
-passport.deserializeUser(function(id, done) {
-    console.log('deserializeUser', id);
+passport.deserializeUser(function(userpro, done) {
+    console.log('deserializeUser', userpro);
     
     models.user.findOne({
       where : {
-        id : body.id,
-        password : body.password
+        id : userpro[1]
       }})
       .then( user => {
-        return done(null, user);
+        console.log(userpro[2]);
+        return done(null, userpro);
       })
       .catch( err => {
         console.log(err);
@@ -59,11 +64,21 @@ router.get('/auth/facebook',
 router.get('/auth/facebook/callback',
     passport.authenticate('facebook',
     {
-      successRedirect: '/',
-      failureRedirect: '/'
+      successRedirect: '/api/gogo',
+      failureRedirect: '/api/login'
     }
   )
 );
+
+router.get('/gogo', function(req, res, next) {
+    console.log("세션 :", req.user);
+    if( req.user) {
+      res.send(`
+      <h1> hello, ${req.user[2]} </h1>
+      <a href="/auth/logout"> logout </a>
+      `);
+    }
+  });
 
 let s3 = new AWS.S3();
 
@@ -89,44 +104,48 @@ router.post('/uploadprofile', upload.single("imgFile"), function(req, res, next)
         console.log("사이즈가 너무 큽니다.");
     }
 })
+
+router.get('/login',function(req,res,next) {
+  res.render('login');
+})
 router.post('/signup', function(req, res, next) {
   
   let body = req.body;
 
   let password = body.password;
-  let changepwd = md5(password+salt);
+  let changepwd = sha256(password+salt);
 
   console.log(body);
   console.log(changepwd);
 
   models.user.create({
-    id : body.id,
-    password : changepwd,
-    name : body.name,
-    studentCode : body.studentCode,
-    Th : body.th,
-    profilejpg : body.profilejpg
-  })
-  .then( result => {
-    console.log("회원가입 성공");
-    res.json({ resultCode : resCode.Success,
-               message: resCode.SuccessMessage 
-})
-  })
-  .catch( err => {
-    console.log(err);
-    res.json({
-      resultCode : resCode.Failed,
-      message : resCode.CreateError
+      id : body.id,
+      password : changepwd,
+      name : body.name,
+      studentCode : body.studentCode,
+      Th : body.th,
+      profilejpg : body.profilejpg
+    })
+    .then( result => {
+      console.log("회원가입 성공");
+      res.json({ resultCode : resCode.Success,
+                 message: resCode.SuccessMessage 
+    })
+    })
+    .catch( err => {
+      console.log(err);
+      res.json({
+        resultCode : resCode.Failed,
+        message : resCode.CreateError
+      });
+    })
   });
-  })
-});
 
 router.post('/signin', function(req, res, next) {
   
   let body = req.body;
   let password = body.password;
-  let changepwd = md5(password+salt);
+  let changepwd = sha256(password+salt);
 
   models.user.findOne({ where : {
       id : body.id,
@@ -158,7 +177,7 @@ router.put('/changepwd', function(req, res, next) {
 
     let body = req.body;
     let change = body.pwd;
-    let changepassword = md5(change+salt);
+    let changepassword = sha256(change+salt);
 
     if(verify(token, secretObj.secret)) {
         models.user.update({
@@ -190,14 +209,17 @@ router.put('/changepwd', function(req, res, next) {
 passport.use(new FacebookStrategy({
     clientID: '651799692349093',
     clientSecret: 'edd74b82d25657477a9a8e78177dc973',
-    callbackURL: "/auth/facebook/callback",
+    callbackURL: "/api/auth/facebook/callback",
     profileFields:['id','displayName']
   },
     function(accessToken, refreshToken, profile, done) {
       let body = profile;
+      console.log(profile);
 
       models.user.findAll()
         .then( result => {
+
+          console.log(result);
   
         if(result.length == 0){
           models.user.create({
@@ -205,13 +227,18 @@ passport.use(new FacebookStrategy({
             name : body.displayName
             })
             .then( result => {
+                console.log("아이디 생성 완료 :", result.dataValues.id);
+
                 let jwttoken = jwt.sign({
-                    id : result.id
+                    id : result.dataValues.id
                 }, secretObj.secret ,
                 {
                     expiresIn: '10m'
                 })
-              return done(null, jwttoken);
+                var userpro = [ jwttoken, result.dataValues.id, result.dataValues.name];
+                console.log("userpro :",userpro[0], userpro[1], userpro[2]);
+                console.log("jwt토큰 발행 :", jwttoken);
+              return done(null, userpro);
             })
             .catch( err => {
               return console.log(err);
@@ -221,15 +248,18 @@ passport.use(new FacebookStrategy({
   
           for(var i=0; i < result.length; i++){
             let user = result[i].dataValues;
-        
+            
+            console.log(user);
             if( id == user.id){
                 let jwttoken = jwt.sign({
-                    id : user.id
+                    id : id
                 }, secretObj.secret ,
                 {
                     expiresIn: '10m'
                 })
-              return done(null, jwttoken);
+                console.log(jwttoken);
+                var userpro = [ jwttoken, user.id, user.name];
+              return done(null, userpro);
               }
             }
   
@@ -239,12 +269,13 @@ passport.use(new FacebookStrategy({
             })
             .then( result => {
                 let jwttoken = jwt.sign({
-                    id : result.id
+                    id : id
                 }, secretObj.secret ,
                 {
                     expiresIn: '10m'
                 })
-              return done(null, jwttoken);
+                var userpro = [ jwttoken,  user.id, user.name];
+              return done(null, userpro);
             })
              .catch( err => {
               return console.log(err);
@@ -256,11 +287,16 @@ passport.use(new FacebookStrategy({
 
   router.get('/mypost', function(req, res, next) {
     
-    let token = req.headers.token;
-    let id = req.signedCookies.userid;
+    var token = req.headers.token;
+    var id = req.signedCookies.userid;
+
+    if( req.user) {
+      var token = req.user[0];
+      var id = req.user[1];
+    }
 
     if(verify(token, secretObj.secret)) {
-        models.post.findAll({
+        models.community.findAll({
             where : {
                 writer : id
             }
