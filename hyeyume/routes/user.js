@@ -4,12 +4,15 @@ var cookieParser = require('cookie-parser');
 var session = require('express-session');
 // var md5 = require('md5');
 var sha256 = require('sha256');
+var pbkfd2Password = require('pbkdf2-password');
+var hasher = pbkfd2Password();
 var jwt = require('jsonwebtoken');
 var resCode = require('../resCode/codes');
 var passport = require('passport');
 var secretObj = require('../config/jwt');
 var verify = require('../config/verify');
 
+// const crypto = require('crypto');
 const AWS = require("aws-sdk");
 const models = require('../models');
 const FacebookStrategy = require('passport-facebook').Strategy;
@@ -18,6 +21,8 @@ const multerS3 = require('multer-s3');
 AWS.config.loadFromPath(__dirname + '/../config/aws.json');
 
 var salt = 'asdfsad%!@%!do5!hodsr';
+let encrypt128 = require('../config/crypto');
+let decrypt128 = require('../config/crypto');
 
 router.use(cookieParser('asdgihasodghoasdg'));
 
@@ -144,12 +149,16 @@ router.get('/login',function(req,res,next) {
 router.post('/signup', function(req, res, next) {
   
   let body = req.body;
+  let changepwd = encrypt128(body.password);
 
-  let password = body.password;
-  let changepwd = sha256(password+salt);
-
-  console.log(body);
-  console.log(changepwd);
+  // randombytes를 이용한 암호화
+  // crypto.randomBytes(64, (err, buf) => {
+  //   crypto.pbkdf2(body.password, buf.toString('base64'), 115616, 64, 'sha512', (err, key) => {
+  //     console.log(key.toString('base64'));
+  //     changepwd = key.toString('base64');
+  //     console.log(changepwd);
+  //   });
+  // });
 
   models.user.create({
       id : body.id,
@@ -157,6 +166,7 @@ router.post('/signup', function(req, res, next) {
       name : body.name,
       studentCode : body.studentCode,
       Th : body.th,
+      salt : salts,
       profilejpg : body.profilejpg
     })
     .then( result => {
