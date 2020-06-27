@@ -12,7 +12,7 @@ var passport = require('passport');
 var secretObj = require('../config/jwt');
 var verify = require('../config/verify');
 
-// const crypto = require('crypto');
+const crypto = require('crypto');
 const AWS = require("aws-sdk");
 const models = require('../models');
 const FacebookStrategy = require('passport-facebook').Strategy;
@@ -21,8 +21,14 @@ const multerS3 = require('multer-s3');
 AWS.config.loadFromPath(__dirname + '/../config/aws.json');
 
 var salt = 'asdfsad%!@%!do5!hodsr';
-let encrypt128 = require('../config/crypto');
-let decrypt128 = require('../config/crypto');
+
+let encrypt256 = require('../config/crypto');
+encrypt = encrypt256.encrypt;
+let decrypt256 = require('../config/crypto');
+decrypt = decrypt256.decrypt;
+
+
+
 
 router.use(cookieParser('asdgihasodghoasdg'));
 
@@ -147,9 +153,11 @@ router.get('/login',function(req,res,next) {
   res.render('login');
 })
 router.post('/signup', function(req, res, next) {
-  
+
   let body = req.body;
-  let changepwd = encrypt128(body.password);
+  let ddd = body.password;
+  let change = encrypt(ddd);
+  console.log(change);
 
   // randombytes를 이용한 암호화
   // crypto.randomBytes(64, (err, buf) => {
@@ -162,11 +170,11 @@ router.post('/signup', function(req, res, next) {
 
   models.user.create({
       id : body.id,
-      password : changepwd,
+      password : change,
       name : body.name,
       studentCode : body.studentCode,
       Th : body.th,
-      salt : salts,
+      // iv : changepwd.iv,
       profilejpg : body.profilejpg
     })
     .then( result => {
@@ -187,12 +195,13 @@ router.post('/signup', function(req, res, next) {
 router.post('/signin', function(req, res, next) {
   
   let body = req.body;
-  let password = body.password;
-  let changepwd = sha256(password+salt);
+  let password = encrypt(body.password);
+
+  // let changepwd = sha256(password+salt);
 
   models.user.findOne({ where : {
       id : body.id,
-      password : changepwd
+      password : password
     }})
     .then(userprofile => {
         let jwttoken = jwt.sign({
