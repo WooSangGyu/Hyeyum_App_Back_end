@@ -14,6 +14,7 @@ var verify = require('../config/verify');
 
 const crypto = require('crypto');
 const AWS = require("aws-sdk");
+const path = require("path");
 const models = require('../models');
 const FacebookStrategy = require('passport-facebook').Strategy;
 const multer = require('multer');
@@ -82,11 +83,22 @@ router.get('/auth/facebook/callback',
 );
 
 router.get('/gogo', function(req, res, next) {
+    var token = req.signedCookies.token;
+    var id = req.signedCookies.userid;
+
     console.log("세션 :", req.user);
-    if( req.user) {
+    console.log(token);
+    console.log(id);
+
+    if(req.user) {
       res.send(`
       <h1> hello, ${req.user[2]} </h1>
       <a href="/auth/logout"> logout </a>
+      `);
+    } else if(verify(token, secretObj.secret)) {
+      res.send(`
+      <h1> hello, ${id} </h1>
+      <a href="/api/upload"> gogoupload </a>
       `);
     }
   });
@@ -111,7 +123,7 @@ router.get('/upload', function(req, res) {
 });
 
 router.post('/uploadprofile', upload.single("imgFile"), function(req, res, next) {
-  var token = req.headers.token;
+  var token = req.signedCookies.token;
   var id = req.signedCookies.userid;
 
   if( req.user) {
@@ -129,10 +141,11 @@ router.post('/uploadprofile', upload.single("imgFile"), function(req, res, next)
             where : { id : id }
         })
           .then(result =>{
-            res.json({
-              resultCode : resCode.Success,
-              message : resCode.SuccessMessage
-            });
+            res.redirect('/api/gogo');
+            // res.json({
+            //   resultCode : resCode.Success,
+            //   message : resCode.SuccessMessage
+            // });
           })
           .catch(err => {
             console.log(err);
@@ -210,11 +223,16 @@ router.post('/signin', function(req, res, next) {
         {
             expiresIn: '10m'
         })
+        // console.log(jwttoken);
         var id = userprofile.dataValues.id;
+        // console.log(id);
         res.cookie('userid', id, { signed : true });
-        res.json({ resultCode : resCode.Success,
-                   message: resCode.SuccessMessage,
-                  token : jwttoken });
+        res.cookie('token', jwttoken, { signed : true });
+        res.redirect('/api/gogo');
+        // res.json({ resultCode : resCode.Success,
+        //            message: resCode.SuccessMessage,
+        //           token : jwttoken 
+        //         });
     })
     .catch(err => {
         console.log(err);
