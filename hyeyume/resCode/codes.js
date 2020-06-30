@@ -20,7 +20,10 @@ let rescodeObj = {
     VerifyFailError : "Verify Error",
 
     // Authority ERROR
-    AuthorityError : "Authority Error"
+    AuthorityError : "Authority Error",
+
+    //download hyeyum
+    down : "s3.ap-northeast-2.amazonaws.com/hyeyum/"
 };
 
 module.exports = rescodeObj

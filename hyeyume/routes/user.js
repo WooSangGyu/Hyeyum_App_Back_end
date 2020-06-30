@@ -99,6 +99,9 @@ router.get('/gogo', function(req, res, next) {
       res.send(`
       <h1> hello, ${id} </h1>
       <a href="/api/upload"> gogoupload </a>
+      <p>
+      <a href="/api/downloadprofile"> download profile </a>
+      </p>
       `);
     }
   });
@@ -161,6 +164,32 @@ router.post('/uploadprofile', upload.single("imgFile"), function(req, res, next)
     }
   }
 )
+
+router.get('/downloadprofile', function(req, res,next) {
+  var token = req.signedCookies.token;
+  var id = req.signedCookies.userid;
+  
+  console.log(id);
+
+  if( req.user) {
+    var token = req.user[0];
+    var id = req.user[1];
+  }
+
+  if(verify(token, secretObj.secret)){
+    models.user.findOne({
+      where: {
+        id : id
+      }})
+      .then( findprofile => {
+        let profilejpg = findprofile.dataValues.profilejpg;
+        console.log(profilejpg);
+        res.json({
+          success : resCode.down + profilejpg
+        });
+      })
+  }
+})
 
 router.get('/login',function(req,res,next) {
   res.render('login');
