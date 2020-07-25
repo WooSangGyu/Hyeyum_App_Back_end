@@ -306,8 +306,8 @@ router.put('/changepwd', function(req, res, next) {
 
 
 passport.use(new FacebookStrategy({
-    clientID: '651799692349093',
-    clientSecret: 'edd74b82d25657477a9a8e78177dc973',
+    clientID: process.env.FACEBOOK_ID,
+    clientSecret: process.env.FACEBOOK_SECRETKEY,
     callbackURL: "/api/auth/facebook/callback",
     profileFields:['id','displayName']
   },
